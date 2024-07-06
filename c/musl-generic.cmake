@@ -1,8 +1,4 @@
-if(NOT DEFINED ENV{ARCH})
-    set(ARCH "x86_64")
-else()
-    set(ARCH $ENV{ARCH})
-endif()
+set(ARCH "riscv64")
 
 # Name of the target
 set(CMAKE_SYSTEM_NAME "Linux")
