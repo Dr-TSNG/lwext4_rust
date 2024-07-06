@@ -3,10 +3,8 @@ use alloc::{ffi::CString, vec::Vec};
 
 // Ext4File文件操作与block device设备解耦了
 pub struct Ext4File {
-    //file_desc_map: BTreeMap<CString, ext4_file>,
     file_desc: ext4_file,
     file_path: CString,
-
     this_type: InodeTypes,
 }
 
@@ -131,6 +129,10 @@ impl Ext4File {
             debug!("{:?} {} No Exist. ext4_inode_exist rc = {}", mtype, path, r);
             false
         }
+    }
+
+    pub fn file_inode_num(&self) -> u32 {
+        self.file_desc.inode
     }
 
     /// Rename file and directory
