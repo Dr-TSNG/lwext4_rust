@@ -8,26 +8,17 @@ use core::ffi::{c_char, c_int, c_size_t, c_void};
 #[linkage = "weak"]
 #[no_mangle]
 unsafe extern "C" fn printf(str: *const c_char, mut args: ...) -> c_int {
-    // extern "C" { pub fn printf(arg1: *const c_char, ...) -> c_int; }
     use printf_compat::{format, output};
-
     let mut s = String::new();
     let bytes_written = format(str as _, args.as_va_list(), output::fmt_write(&mut s));
-    //println!("{}", s);
-    info!("{}", s);
-
+    trace!("[ext4] {}", s);
     bytes_written
 }
 
 #[cfg(not(feature = "print"))]
 #[linkage = "weak"]
 #[no_mangle]
-unsafe extern "C" fn printf(str: *const c_char, mut args: ...) -> c_int {
-    use core::ffi::CStr;
-    let c_str = unsafe { CStr::from_ptr(str) };
-    //let arg1 = args.arg::<usize>();
-
-    info!("[lwext4] {:?}", c_str);
+unsafe extern "C" fn printf(_str: *const c_char, _args: ...) -> c_int {
     0
 }
 

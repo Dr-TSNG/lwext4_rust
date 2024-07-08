@@ -52,7 +52,6 @@ fn main() {
         let sysroot = sysroot.trim_end();
         let sysroot_inc = &format!("-I{}/include/", sysroot);
         generates_bindings_to_rust(sysroot_inc);
-        panic!("HERE")
     }
 
     /* No longer need to implement the libc.a
