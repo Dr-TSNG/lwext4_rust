@@ -17,11 +17,12 @@ mod ulibc;
 // include!("bindings.rs");
 pub mod bindings;
 pub mod blockdev;
+pub mod dir;
 pub mod file;
 pub mod inode;
 
 pub use blockdev::*;
-pub use file::{Ext4File, InodeTypes};
+pub use file::Ext4File;
 
 pub fn add(left: usize, right: usize) -> usize {
     left + right
