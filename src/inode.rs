@@ -3,6 +3,8 @@ use crate::bindings::{ext4_inode, ext4_inode_ref};
 
 pub struct Ext4InodeRef(pub(crate) ext4_inode_ref);
 
+unsafe impl Send for Ext4InodeRef {}
+
 impl Deref for Ext4InodeRef {
     type Target = ext4_inode;
 

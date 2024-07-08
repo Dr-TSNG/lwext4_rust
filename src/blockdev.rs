@@ -378,11 +378,13 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
 }
 
 impl<K: KernelDevOp> Ext4BlockWrapper<K> {
-    pub fn ext4_get_inode_ref(&self, ino: u32) -> Ext4InodeRef {
+    pub fn ext4_get_inode_ref(&self, ino: u32) -> Result<Ext4InodeRef, i32> {
         unsafe {
             let mut inode_ref = core::mem::zeroed();
-            ext4_fs_get_inode_ref(self.value.fs, ino, &mut inode_ref);
-            Ext4InodeRef(inode_ref)
+            match ext4_fs_get_inode_ref(self.value.fs, ino, &mut inode_ref) {
+                0 => Ok(Ext4InodeRef(inode_ref)),
+                e => Err(e),
+            }
         }
     }
 }
