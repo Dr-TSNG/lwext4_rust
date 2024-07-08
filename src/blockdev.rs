@@ -387,6 +387,13 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
             }
         }
     }
+
+    pub fn ext4_get_inode_size(&self, inode_ref: &Ext4InodeRef) -> u64 {
+        unsafe {
+            let sb = &mut (*self.value.fs).sb;
+            ext4_inode_get_size(sb, inode_ref.0.inode)
+        }
+    }
 }
 
 impl<K: KernelDevOp> Drop for Ext4BlockWrapper<K> {

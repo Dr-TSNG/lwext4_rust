@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::{env, fs};
+use std::fs;
 
 fn main() {
     let c_path = PathBuf::from("c/lwext4")
@@ -28,27 +28,22 @@ fn main() {
         fs::copy(
             "c/musl-generic.cmake",
             "c/lwext4/toolchain/musl-generic.cmake",
-        )
-        .unwrap();
+        ).unwrap();
     }
 
-    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
-    let lwext4_lib = &format!("lwext4-{}", arch);
-    let lwext4_lib_path = &format!("c/lwext4/lib{}.a", lwext4_lib);
-    if !Path::new(lwext4_lib_path).exists() {
+    if !Path::new("c/lwext4/liblwext4-riscv64.a").exists() {
         let status = Command::new("make")
             .args(&[
                 "musl-generic",
                 "-C",
                 c_path.to_str().expect("invalid path of lwext4"),
             ])
-            .arg(&format!("ARCH={}", arch))
+            .arg("ARCH=riscv64")
             .status()
             .expect("failed to execute process: make lwext4");
         assert!(status.success());
 
-        let cc = &format!("{}-linux-musl-gcc", arch);
-        let output = Command::new(cc)
+        let output = Command::new("riscv64-linux-musl-gcc")
             .args(["-print-sysroot"])
             .output()
             .expect("failed to execute process: gcc -print-sysroot");
@@ -57,6 +52,7 @@ fn main() {
         let sysroot = sysroot.trim_end();
         let sysroot_inc = &format!("-I{}/include/", sysroot);
         generates_bindings_to_rust(sysroot_inc);
+        panic!("HERE")
     }
 
     /* No longer need to implement the libc.a
@@ -73,27 +69,22 @@ fn main() {
     );
     */
 
-    println!("cargo:rustc-link-lib=static={lwext4_lib}");
+    println!("cargo:rustc-link-lib=static=lwext4-riscv64");
     println!(
         "cargo:rustc-link-search=native={}",
         c_path.to_str().unwrap()
     );
+    println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=c/wrapper.h");
     println!("cargo:rerun-if-changed={}", c_path.to_str().unwrap());
 }
 
-#[cfg(target_arch = "x86_64")]
-fn generates_bindings_to_rust(_mpath: &str) {}
-
-#[cfg(not(target_arch = "x86_64"))]
 fn generates_bindings_to_rust(mpath: &str) {
     let bindings = bindgen::Builder::default()
         .use_core()
         // The input header we would like to generate bindings for.
         .header("c/wrapper.h")
-        //.clang_arg("--sysroot=/path/to/sysroot")
         .clang_arg(mpath)
-        //.clang_arg("-I../../ulib/axlibc/include")
         .clang_arg("-I./c/lwext4/include")
         .clang_arg("-I./c/lwext4/build_musl-generic/include/")
         .layout_tests(false)

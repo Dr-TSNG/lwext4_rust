@@ -566,6 +566,7 @@ pub struct ext4_buf {
     #[doc = "@brief   argument passed to end_write() callback."]
     pub end_write_arg: *mut ::core::ffi::c_void,
 }
+#[doc = "@brief   LBA tree node"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ext4_buf__bindgen_ty_1 {
@@ -574,6 +575,7 @@ pub struct ext4_buf__bindgen_ty_1 {
     pub rbe_parent: *mut ext4_buf,
     pub rbe_color: ::core::ffi::c_int,
 }
+#[doc = "@brief   LRU tree node"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ext4_buf__bindgen_ty_2 {
@@ -582,6 +584,7 @@ pub struct ext4_buf__bindgen_ty_2 {
     pub rbe_parent: *mut ext4_buf,
     pub rbe_color: ::core::ffi::c_int,
 }
+#[doc = "@brief   Dirty list node"]
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct ext4_buf__bindgen_ty_3 {
@@ -1999,6 +2002,187 @@ extern "C" {
 extern "C" {
     #[doc = "@brief   Rewine directory entry offset.\n\n @param   dir Directory handle."]
     pub fn ext4_dir_entry_rewind(dir: *mut ext4_dir);
+}
+extern "C" {
+    #[doc = "@brief Get mode of the i-node.\n @param sb    Superblock\n @param inode I-node to load mode from\n @return Mode of the i-node"]
+    pub fn ext4_inode_get_mode(sb: *mut ext4_sblock, inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set mode of the i-node.\n @param sb    Superblock\n @param inode I-node to set mode to\n @param mode  Mode to set to i-node"]
+    pub fn ext4_inode_set_mode(sb: *mut ext4_sblock, inode: *mut ext4_inode, mode: u32);
+}
+extern "C" {
+    #[doc = "@brief Get ID of the i-node owner (user id).\n @param inode I-node to load uid from\n @return User ID of the i-node owner"]
+    pub fn ext4_inode_get_uid(inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set ID of the i-node owner.\n @param inode I-node to set uid to\n @param uid   ID of the i-node owner"]
+    pub fn ext4_inode_set_uid(inode: *mut ext4_inode, uid: u32);
+}
+extern "C" {
+    #[doc = "@brief Get real i-node size.\n @param sb    Superblock\n @param inode I-node to load size from\n @return Real size of i-node"]
+    pub fn ext4_inode_get_size(sb: *mut ext4_sblock, inode: *mut ext4_inode) -> u64;
+}
+extern "C" {
+    #[doc = "@brief Set real i-node size.\n @param inode I-node to set size to\n @param size  Size of the i-node"]
+    pub fn ext4_inode_set_size(inode: *mut ext4_inode, size: u64);
+}
+extern "C" {
+    #[doc = "@brief Get time, when i-node was last accessed.\n @param inode I-node\n @return Time of the last access (POSIX)"]
+    pub fn ext4_inode_get_access_time(inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set time, when i-node was last accessed.\n @param inode I-node\n @param time  Time of the last access (POSIX)"]
+    pub fn ext4_inode_set_access_time(inode: *mut ext4_inode, time: u32);
+}
+extern "C" {
+    #[doc = "@brief Get time, when i-node was last changed.\n @param inode I-node\n @return Time of the last change (POSIX)"]
+    pub fn ext4_inode_get_change_inode_time(inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set time, when i-node was last changed.\n @param inode I-node\n @param time  Time of the last change (POSIX)"]
+    pub fn ext4_inode_set_change_inode_time(inode: *mut ext4_inode, time: u32);
+}
+extern "C" {
+    #[doc = "@brief Get time, when i-node content was last modified.\n @param inode I-node\n @return Time of the last content modification (POSIX)"]
+    pub fn ext4_inode_get_modif_time(inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set time, when i-node content was last modified.\n @param inode I-node\n @param time  Time of the last content modification (POSIX)"]
+    pub fn ext4_inode_set_modif_time(inode: *mut ext4_inode, time: u32);
+}
+extern "C" {
+    #[doc = "@brief Get time, when i-node was deleted.\n @param inode I-node\n @return Time of the delete action (POSIX)"]
+    pub fn ext4_inode_get_del_time(inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set time, when i-node was deleted.\n @param inode I-node\n @param time  Time of the delete action (POSIX)"]
+    pub fn ext4_inode_set_del_time(inode: *mut ext4_inode, time: u32);
+}
+extern "C" {
+    #[doc = "@brief Get ID of the i-node owner's group.\n @param inode I-node to load gid from\n @return Group ID of the i-node owner"]
+    pub fn ext4_inode_get_gid(inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set ID to the i-node owner's group.\n @param inode I-node to set gid to\n @param gid   Group ID of the i-node owner"]
+    pub fn ext4_inode_set_gid(inode: *mut ext4_inode, gid: u32);
+}
+extern "C" {
+    #[doc = "@brief Get number of links to i-node.\n @param inode I-node to load number of links from\n @return Number of links to i-node"]
+    pub fn ext4_inode_get_links_cnt(inode: *mut ext4_inode) -> u16;
+}
+extern "C" {
+    #[doc = "@brief Set number of links to i-node.\n @param inode I-node to set number of links to\n @param cnt Number of links to i-node"]
+    pub fn ext4_inode_set_links_cnt(inode: *mut ext4_inode, cnt: u16);
+}
+extern "C" {
+    #[doc = "@brief Get number of 512-bytes blocks used for i-node.\n @param sb    Superblock\n @param inode I-node\n @return Number of 512-bytes blocks"]
+    pub fn ext4_inode_get_blocks_count(sb: *mut ext4_sblock, inode: *mut ext4_inode) -> u64;
+}
+extern "C" {
+    #[doc = "@brief Set number of 512-bytes blocks used for i-node.\n @param sb    Superblock\n @param inode I-node\n @param cnt Number of 512-bytes blocks\n @return Error code"]
+    pub fn ext4_inode_set_blocks_count(
+        sb: *mut ext4_sblock,
+        inode: *mut ext4_inode,
+        cnt: u64,
+    ) -> ::core::ffi::c_int;
+}
+extern "C" {
+    #[doc = "@brief Get flags (features) of i-node.\n @param inode I-node to get flags from\n @return Flags (bitmap)"]
+    pub fn ext4_inode_get_flags(inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set flags (features) of i-node.\n @param inode I-node to set flags to\n @param flags Flags to set to i-node"]
+    pub fn ext4_inode_set_flags(inode: *mut ext4_inode, flags: u32);
+}
+extern "C" {
+    #[doc = "@brief Get file generation (used by NFS).\n @param inode I-node\n @return File generation"]
+    pub fn ext4_inode_get_generation(inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set file generation (used by NFS).\n @param inode      I-node\n @param gen File generation"]
+    pub fn ext4_inode_set_generation(inode: *mut ext4_inode, gen: u32);
+}
+extern "C" {
+    #[doc = "@brief Get extra I-node size field.\n @param sb         Superblock\n @param inode      I-node\n @return extra I-node size"]
+    pub fn ext4_inode_get_extra_isize(sb: *mut ext4_sblock, inode: *mut ext4_inode) -> u16;
+}
+extern "C" {
+    #[doc = "@brief Set extra I-node size field.\n @param sb         Superblock\n @param inode      I-node\n @param size       extra I-node size"]
+    pub fn ext4_inode_set_extra_isize(sb: *mut ext4_sblock, inode: *mut ext4_inode, size: u16);
+}
+extern "C" {
+    #[doc = "@brief Get address of block, where are extended attributes located.\n @param inode I-node\n @param sb    Superblock\n @return Block address"]
+    pub fn ext4_inode_get_file_acl(inode: *mut ext4_inode, sb: *mut ext4_sblock) -> u64;
+}
+extern "C" {
+    #[doc = "@brief Set address of block, where are extended attributes located.\n @param inode    I-node\n @param sb       Superblock\n @param acl Block address"]
+    pub fn ext4_inode_set_file_acl(inode: *mut ext4_inode, sb: *mut ext4_sblock, acl: u64);
+}
+extern "C" {
+    #[doc = "@brief Get block address of specified direct block.\n @param inode I-node to load block from\n @param idx   Index of logical block\n @return Physical block address"]
+    pub fn ext4_inode_get_direct_block(inode: *mut ext4_inode, idx: u32) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set block address of specified direct block.\n @param inode  I-node to set block address to\n @param idx    Index of logical block\n @param block Physical block address"]
+    pub fn ext4_inode_set_direct_block(inode: *mut ext4_inode, idx: u32, block: u32);
+}
+extern "C" {
+    #[doc = "@brief Get block address of specified indirect block.\n @param inode I-node to get block address from\n @param idx   Index of indirect block\n @return Physical block address"]
+    pub fn ext4_inode_get_indirect_block(inode: *mut ext4_inode, idx: u32) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set block address of specified indirect block.\n @param inode  I-node to set block address to\n @param idx    Index of indirect block\n @param block Physical block address"]
+    pub fn ext4_inode_set_indirect_block(inode: *mut ext4_inode, idx: u32, block: u32);
+}
+extern "C" {
+    #[doc = "@brief Get device number\n @param inode  I-node to get device number from\n @return Device number"]
+    pub fn ext4_inode_get_dev(inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Set device number\n @param inode  I-node to set device number to\n @param dev    Device number"]
+    pub fn ext4_inode_set_dev(inode: *mut ext4_inode, dev: u32);
+}
+extern "C" {
+    #[doc = "@brief return the type of i-node\n @param sb    Superblock\n @param inode I-node to return the type of\n @return Result of check operation"]
+    pub fn ext4_inode_type(sb: *mut ext4_sblock, inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Check if i-node has specified type.\n @param sb    Superblock\n @param inode I-node to check type of\n @param type  Type to check\n @return Result of check operation"]
+    pub fn ext4_inode_is_type(sb: *mut ext4_sblock, inode: *mut ext4_inode, type_: u32) -> bool;
+}
+extern "C" {
+    #[doc = "@brief Check if i-node has specified flag.\n @param inode I-node to check flags of\n @param f  Flag to check\n @return Result of check operation"]
+    pub fn ext4_inode_has_flag(inode: *mut ext4_inode, f: u32) -> bool;
+}
+extern "C" {
+    #[doc = "@brief Remove specified flag from i-node.\n @param inode      I-node to clear flag on\n @param f Flag to be cleared"]
+    pub fn ext4_inode_clear_flag(inode: *mut ext4_inode, f: u32);
+}
+extern "C" {
+    #[doc = "@brief Set specified flag to i-node.\n @param inode    I-node to set flag on\n @param f Flag to be set"]
+    pub fn ext4_inode_set_flag(inode: *mut ext4_inode, f: u32);
+}
+extern "C" {
+    #[doc = "@brief Get inode checksum(crc32)\n @param sb    Superblock\n @param inode I-node to get checksum value from"]
+    pub fn ext4_inode_get_csum(sb: *mut ext4_sblock, inode: *mut ext4_inode) -> u32;
+}
+extern "C" {
+    #[doc = "@brief Get inode checksum(crc32)\n @param sb    Superblock\n @param inode I-node to get checksum value from"]
+    pub fn ext4_inode_set_csum(sb: *mut ext4_sblock, inode: *mut ext4_inode, checksum: u32);
+}
+extern "C" {
+    #[doc = "@brief Check if i-node can be truncated.\n @param sb    Superblock\n @param inode I-node to check\n @return Result of the check operation"]
+    pub fn ext4_inode_can_truncate(sb: *mut ext4_sblock, inode: *mut ext4_inode) -> bool;
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct ext4_extent_header {
+    _unused: [u8; 0],
+}
+extern "C" {
+    #[doc = "@brief Get extent header from the root of the extent tree.\n @param inode I-node to get extent header from\n @return Pointer to extent header of the root node"]
+    pub fn ext4_inode_get_extent_header(inode: *mut ext4_inode) -> *mut ext4_extent_header;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
