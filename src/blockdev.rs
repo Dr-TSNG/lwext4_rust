@@ -5,6 +5,7 @@ use core::ffi::{c_char, c_void};
 use core::ptr::null_mut;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
 use core::str;
+use crate::inode::Ext4InodeRef;
 
 /// Device block size.
 const EXT4_DEV_BSIZE: u32 = 512;
@@ -72,7 +73,7 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
 
         let c_name = CString::new("ext4_fs").expect("CString::new ext4_fs failed");
         let c_name = c_name.as_bytes_with_nul(); // + '\0'
-                                                 //let c_mountpoint = CString::new("/mp/").unwrap();
+        //let c_mountpoint = CString::new("/mp/").unwrap();
         let c_mountpoint = CString::new("/").unwrap();
         let c_mountpoint = c_mountpoint.as_bytes_with_nul();
 
@@ -373,6 +374,16 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
             info!("bcache->lru_ctr = {:?}", (*ext4dev.bc).lru_ctr);
         }
         info!("********************\n");
+    }
+}
+
+impl<K: KernelDevOp> Ext4BlockWrapper<K> {
+    pub fn ext4_get_inode_ref(&self, ino: u32) -> Ext4InodeRef {
+        unsafe {
+            let mut inode_ref = core::mem::zeroed();
+            ext4_fs_get_inode_ref(self.value.fs, ino, &mut inode_ref);
+            Ext4InodeRef(inode_ref)
+        }
     }
 }
 
