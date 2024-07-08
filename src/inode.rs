@@ -1,5 +1,5 @@
 use core::ops::Deref;
-use crate::bindings::{ext4_inode, ext4_inode_ref};
+use crate::bindings::*;
 
 pub struct Ext4InodeRef(pub(crate) ext4_inode_ref);
 

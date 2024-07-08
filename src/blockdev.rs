@@ -4,7 +4,6 @@ use alloc::ffi::CString;
 use core::ffi::{c_char, c_void};
 use core::ptr::null_mut;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
-use core::str;
 use crate::inode::Ext4InodeRef;
 
 /// Device block size.
@@ -102,7 +101,6 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
                 .expect("Failed to mount the ext4 file system, perhaps the disk is not an EXT4 file system.");
         }
 
-        ext4bd.lwext4_dir_ls();
         ext4bd.print_lwext4_mp_stats();
         ext4bd.print_lwext4_block_stats();
 
@@ -138,11 +136,10 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
     }
     pub unsafe extern "C" fn dev_bread(
         bdev: *mut ext4_blockdev,
-        buf: *mut ::core::ffi::c_void,
+        buf: *mut c_void,
         blk_id: u64,
         blk_cnt: u32,
     ) -> ::core::ffi::c_int {
-        debug!("READ Ext4 block id: {}, count: {}", blk_id, blk_cnt);
         let devt = unsafe { &mut *((*(*bdev).bdif).p_user as *mut K::DevType) };
 
         let seek_off = K::seek(
@@ -176,8 +173,6 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         blk_id: u64,
         blk_cnt: u32,
     ) -> ::core::ffi::c_int {
-        debug!("WRITE Ext4 block id: {}, count: {}", blk_id, blk_cnt);
-
         let devt = unsafe { &mut *((*(*bdev).bdif).p_user as *mut K::DevType) };
         //let mut devt = unsafe { K::DevType::borrow_mut((*(*bdev).bdif).p_user) };
         //let mut devt = unsafe { K::DevType::from_foreign((*(*bdev).bdif).p_user) };
@@ -284,44 +279,6 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
 
         info!("lwext4 umount Okay");
         Ok(0)
-    }
-
-    pub fn lwext4_dir_ls(&self) {
-        let path = &self.mount_point;
-        let mut sss: [u8; 255] = [0; 255];
-        let mut d: ext4_dir = unsafe { core::mem::zeroed() };
-
-        let entry_to_str = |entry_type| match entry_type {
-            EXT4_DE_UNKNOWN => "[unk] ",
-            EXT4_DE_REG_FILE => "[fil] ",
-            EXT4_DE_DIR => "[dir] ",
-            EXT4_DE_CHRDEV => "[cha] ",
-            EXT4_DE_BLKDEV => "[blk] ",
-            EXT4_DE_FIFO => "[fif] ",
-            EXT4_DE_SOCK => "[soc] ",
-            EXT4_DE_SYMLINK => "[sym] ",
-            _ => "[???] ",
-        };
-
-        info!("ls {}", str::from_utf8(path).unwrap());
-        unsafe {
-            ext4_dir_open(&mut d, path as *const _ as *const c_char);
-            let mut de = ext4_dir_entry_next(&mut d);
-            while !de.is_null() {
-                let dentry = &(*de);
-                sss.copy_from_slice(&dentry.name);
-                sss[dentry.name_length as usize] = 0;
-
-                info!(
-                    "  {}{}",
-                    entry_to_str(dentry.inode_type as u32),
-                    str::from_utf8(&sss).unwrap()
-                );
-                de = ext4_dir_entry_next(&mut d);
-            }
-            ext4_dir_close(&mut d);
-        }
-        info!("");
     }
 
     pub fn ext4_set_debug(&self) {

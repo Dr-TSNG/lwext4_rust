@@ -1,7 +1,7 @@
 use alloc::ffi::CString;
 use alloc::string::{String, ToString};
 use core::mem::MaybeUninit;
-use crate::bindings::{ext4_dir, ext4_dir_close, ext4_dir_entry_next, ext4_dir_mk, ext4_dir_mv, ext4_dir_open, ext4_dir_rm, ext4_fremove, ext4_frename};
+use crate::bindings::*;
 
 pub struct Ext4Dir(ext4_dir);
 

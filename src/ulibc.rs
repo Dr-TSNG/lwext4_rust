@@ -48,7 +48,6 @@ pub extern "C" fn realloc(memblock: *mut c_void, size: c_size_t) -> *mut c_void 
 
     let ptr = memblock.cast::<MemoryControlBlock>();
     let old_size = unsafe { ptr.sub(1).read().size };
-    info!("realloc from {} to {}", old_size, size);
 
     let mem = malloc(size);
 
