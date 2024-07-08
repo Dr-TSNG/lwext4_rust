@@ -34,6 +34,10 @@ impl Ext4File {
         }
     }
 
+    pub fn inode(&self) -> u32 {
+        self.0.inode
+    }
+
     pub fn seek(&mut self, offset: i64, seek_type: u32) -> Result<(), i32> {
         let mut offset = offset;
         let size = self.size() as i64;

@@ -25,6 +25,10 @@ impl Ext4Dir {
             }
         }
     }
+
+    pub fn inode(&self) -> u32 {
+        self.0.f.inode
+    }
 }
 
 impl Drop for Ext4Dir {
