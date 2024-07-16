@@ -41,6 +41,18 @@ impl Ext4Dir {
         }
     }
 
+    pub fn symlink(src: &str, target: &str) -> Result<(), i32> {
+        let src_path = CString::new(src).unwrap();
+        let target_path = CString::new(target).unwrap();
+        match unsafe { ext4_fsymlink(target_path.as_ptr(), src_path.as_ptr()) } {
+            0 => Ok(()),
+            e => {
+                error!("ext4_fsymlink {} -> {} failed: {}", src, target, e);
+                Err(e)
+            }
+        }
+    }
+
     pub fn rmdir(path: &str) -> Result<(), i32> {
         let c_path = CString::new(path).unwrap();
         match unsafe { ext4_dir_rm(c_path.as_ptr()) } {
