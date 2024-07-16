@@ -345,6 +345,18 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         }
     }
 
+    pub fn ext4_get_ino_by_path(&self, path: &str) -> Result<u32, i32> {
+        let path = CString::new(path).unwrap();
+        unsafe {
+            let mut ino = 0;
+            let mut inode = core::mem::zeroed();
+            match ext4_raw_inode_fill(path.as_ptr(), &mut ino, &mut inode) {
+                0 => Ok(ino),
+                e => Err(e),
+            }
+        }
+    }
+
     pub fn ext4_get_inode_size(&self, inode_ref: &Ext4InodeRef) -> u64 {
         unsafe {
             let sb = &mut (*self.value.fs).sb;
