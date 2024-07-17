@@ -1,8 +1,9 @@
 use alloc::alloc::{alloc, dealloc, Layout};
-use alloc::slice::from_raw_parts_mut;
 use alloc::string::String;
 use core::cmp::min;
 use core::ffi::{c_char, c_int, c_size_t, c_void};
+use core::mem::size_of;
+use core::ptr::copy_nonoverlapping;
 
 #[cfg(feature = "print")]
 #[linkage = "weak"]
@@ -22,68 +23,19 @@ unsafe extern "C" fn printf(_str: *const c_char, _args: ...) -> c_int {
     0
 }
 
-#[no_mangle]
-pub extern "C" fn ext4_user_malloc(size: c_size_t) -> *mut c_void {
-    malloc(size)
-}
-
-#[linkage = "weak"]
-#[no_mangle]
-pub extern "C" fn calloc(m: c_size_t, n: c_size_t) -> *mut c_void {
-    let mem = malloc(m * n);
-
-    extern "C" {
-        pub fn memset(dest: *mut c_void, c: c_int, n: c_size_t) -> *mut c_void;
-    }
-    unsafe { memset(mem, 0, m * n) }
-}
-
-#[linkage = "weak"]
-#[no_mangle]
-pub extern "C" fn realloc(memblock: *mut c_void, size: c_size_t) -> *mut c_void {
-    if memblock.is_null() {
-        warn!("realloc a a null mem pointer");
-        return malloc(size);
-    }
-
-    let ptr = memblock.cast::<MemoryControlBlock>();
-    let old_size = unsafe { ptr.sub(1).read().size };
-
-    let mem = malloc(size);
-
-    unsafe {
-        let old_size = min(size, old_size);
-        let mbuf = from_raw_parts_mut(mem as *mut u8, old_size);
-        mbuf.copy_from_slice(from_raw_parts_mut(memblock as *mut u8, old_size));
-    }
-    free(memblock);
-
-    mem
-}
-
-#[no_mangle]
-pub extern "C" fn ext4_user_free(p: *mut c_void) {
-    free(p)
-}
-
-struct MemoryControlBlock {
-    size: usize,
-}
-const CTRL_BLK_SIZE: usize = core::mem::size_of::<MemoryControlBlock>();
+#[repr(transparent)]
+struct MemTracker(usize);
 
 /// Allocate size bytes memory and return the memory address.
 #[linkage = "weak"]
 #[no_mangle]
-pub extern "C" fn malloc(size: c_size_t) -> *mut c_void {
+pub extern "C" fn malloc(len: c_size_t) -> *mut c_void {
     // Allocate `(actual length) + 8`. The lowest 8 Bytes are stored in the actual allocated space size.
-    let layout = Layout::from_size_align(size + CTRL_BLK_SIZE, 8).unwrap();
+    let layout = Layout::from_size_align(size_of::<MemTracker>() + len, 8).unwrap();
     unsafe {
-        let ptr = alloc(layout);
+        let ptr = alloc(layout).cast::<MemTracker>();
         assert!(!ptr.is_null(), "malloc failed");
-        //debug!("malloc {}@{:p}", size + CTRL_BLK_SIZE, ptr);
-
-        let ptr = ptr.cast::<MemoryControlBlock>();
-        ptr.write(MemoryControlBlock { size });
+        ptr.write(MemTracker(len));
         ptr.add(1).cast()
     }
 }
@@ -96,14 +48,40 @@ pub extern "C" fn free(ptr: *mut c_void) {
         warn!("free a null pointer !");
         return;
     }
-    //debug!("free pointer {:p}", ptr);
 
-    let ptr = ptr.cast::<MemoryControlBlock>();
-    assert!(ptr as usize > CTRL_BLK_SIZE, "free a null pointer"); // ?
+    let ptr = ptr.cast::<MemTracker>();
     unsafe {
         let ptr = ptr.sub(1);
-        let size = ptr.read().size;
-        let layout = Layout::from_size_align(size + CTRL_BLK_SIZE, 8).unwrap();
+        let size = ptr.read().0;
+        let layout = Layout::from_size_align(size_of::<MemTracker>() + size, 8).unwrap();
         dealloc(ptr.cast(), layout)
     }
+}
+
+#[linkage = "weak"]
+#[no_mangle]
+pub extern "C" fn calloc(n: c_size_t, size: c_size_t) -> *mut c_void {
+    let ptr = malloc(n * size);
+    unsafe { ptr.write_bytes(0, n * size); }
+    ptr
+}
+
+#[linkage = "weak"]
+#[no_mangle]
+pub extern "C" fn realloc(old_ptr: *mut c_void, len: c_size_t) -> *mut c_void {
+    if old_ptr.is_null() {
+        warn!("realloc a a null mem pointer");
+        return malloc(len);
+    }
+
+    let old_ptr = old_ptr.cast::<MemTracker>();
+    let old_len = unsafe { old_ptr.sub(1).read().0 };
+    let new_ptr = malloc(len);
+    let copy_len = min(len, old_len);
+
+    unsafe {
+        copy_nonoverlapping(old_ptr.cast::<u8>(), new_ptr.cast::<u8>(), copy_len);
+    }
+    free(old_ptr.cast());
+    new_ptr
 }
