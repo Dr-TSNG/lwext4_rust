@@ -31,7 +31,13 @@ struct MemTracker(usize);
 #[no_mangle]
 pub extern "C" fn malloc(len: c_size_t) -> *mut c_void {
     // Allocate `(actual length) + 8`. The lowest 8 Bytes are stored in the actual allocated space size.
-    let layout = Layout::from_size_align(size_of::<MemTracker>() + len, 8).unwrap();
+    let layout = match Layout::from_size_align(size_of::<MemTracker>() + len, 8) {
+        Ok(layout) => layout,
+        Err(_) => {
+            warn!("malloc failed: len = {}", len);
+            return core::ptr::null_mut();
+        }
+    };
     unsafe {
         let ptr = alloc(layout).cast::<MemTracker>();
         assert!(!ptr.is_null(), "malloc failed");
@@ -52,8 +58,14 @@ pub extern "C" fn free(ptr: *mut c_void) {
     let ptr = ptr.cast::<MemTracker>();
     unsafe {
         let ptr = ptr.sub(1);
-        let size = ptr.read().0;
-        let layout = Layout::from_size_align(size_of::<MemTracker>() + size, 8).unwrap();
+        let len = ptr.read().0;
+        let layout = match Layout::from_size_align(size_of::<MemTracker>() + len, 8) {
+            Ok(layout) => layout,
+            Err(_) => {
+                warn!("free failed: invalid layout: len = {}", len);
+                return;
+            }
+        };
         dealloc(ptr.cast(), layout)
     }
 }
