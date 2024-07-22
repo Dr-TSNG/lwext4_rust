@@ -5,6 +5,7 @@ use core::ffi::{c_char, c_void};
 use core::mem::MaybeUninit;
 use core::ptr::null_mut;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
+use crate::Ext4File;
 use crate::inode::Ext4InodeRef;
 
 /// Device block size.
@@ -336,7 +337,7 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
 }
 
 impl<K: KernelDevOp> Ext4BlockWrapper<K> {
-    pub fn ext4_get_inode_ref(&self, ino: u32) -> Result<Ext4InodeRef, i32> {
+    pub fn get_inode_ref(&self, ino: u32) -> Result<Ext4InodeRef, i32> {
         unsafe {
             let mut inode_ref = MaybeUninit::uninit();
             match ext4_fs_get_inode_ref(self.value.fs, ino, inode_ref.as_mut_ptr()) {
@@ -346,7 +347,7 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         }
     }
 
-    pub fn ext4_get_ino_by_path(&self, path: &str) -> Result<u32, i32> {
+    pub fn get_ino_by_path(&self, path: &str) -> Result<u32, i32> {
         let path = CString::new(path).unwrap();
         unsafe {
             let mut ino = 0;
@@ -358,11 +359,22 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         }
     }
 
-    pub fn ext4_get_inode_size(&self, inode_ref: &Ext4InodeRef) -> u64 {
+    pub fn get_inode_size(&self, inode_ref: &Ext4InodeRef) -> u64 {
         unsafe {
             let sb = &mut (*self.value.fs).sb;
             ext4_inode_get_size(sb, inode_ref.0.inode)
         }
+    }
+
+    pub fn open_file_by_ino(&self, ino: u32) -> Result<Ext4File, i32> {
+        let inode_ref = self.get_inode_ref(ino)?;
+        Ok(Ext4File(ext4_file {
+            mp: (&self.mount_point as *const _).cast_mut().cast(),
+            inode: ino,
+            flags: O_RDWR,
+            fsize: self.get_inode_size(&inode_ref),
+            fpos: 0,
+        }))
     }
 }
 

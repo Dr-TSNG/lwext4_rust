@@ -3,7 +3,7 @@ use alloc::ffi::CString;
 use core::mem::MaybeUninit;
 use crate::dir::Ext4DirIter;
 
-pub struct Ext4File(ext4_file);
+pub struct Ext4File(pub(crate) ext4_file);
 
 impl Ext4File {
     /// File open function.
