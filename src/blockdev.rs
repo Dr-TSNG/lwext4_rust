@@ -2,6 +2,7 @@ use crate::bindings::*;
 use alloc::boxed::Box;
 use alloc::ffi::CString;
 use core::ffi::{c_char, c_void};
+use core::mem::MaybeUninit;
 use core::ptr::null_mut;
 use core::slice::{from_raw_parts, from_raw_parts_mut};
 use crate::inode::Ext4InodeRef;
@@ -337,9 +338,9 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
 impl<K: KernelDevOp> Ext4BlockWrapper<K> {
     pub fn ext4_get_inode_ref(&self, ino: u32) -> Result<Ext4InodeRef, i32> {
         unsafe {
-            let mut inode_ref = core::mem::zeroed();
-            match ext4_fs_get_inode_ref(self.value.fs, ino, &mut inode_ref) {
-                0 => Ok(Ext4InodeRef(inode_ref)),
+            let mut inode_ref = MaybeUninit::uninit();
+            match ext4_fs_get_inode_ref(self.value.fs, ino, inode_ref.as_mut_ptr()) {
+                0 => Ok(Ext4InodeRef(inode_ref.assume_init())),
                 e => Err(e),
             }
         }
@@ -349,8 +350,8 @@ impl<K: KernelDevOp> Ext4BlockWrapper<K> {
         let path = CString::new(path).unwrap();
         unsafe {
             let mut ino = 0;
-            let mut inode = core::mem::zeroed();
-            match ext4_raw_inode_fill(path.as_ptr(), &mut ino, &mut inode) {
+            let mut inode = MaybeUninit::uninit();
+            match ext4_raw_inode_fill(path.as_ptr(), &mut ino, inode.as_mut_ptr()) {
                 0 => Ok(ino),
                 e => Err(e),
             }

@@ -1,6 +1,7 @@
 use crate::bindings::*;
 use alloc::ffi::CString;
 use core::mem::MaybeUninit;
+use crate::dir::Ext4DirIter;
 
 pub struct Ext4File(ext4_file);
 
@@ -20,7 +21,7 @@ impl Ext4File {
     /// |---------------------------------------------------------------|
     /// |   a+ or ab+ or a+b        O_RDWR|O_CREAT|O_APPEND             |
     /// |---------------------------------------------------------------|
-    pub fn open(path: &str, flags: u32) -> Result<Self, i32> {
+    pub fn open_file(path: &str, flags: u32) -> Result<Self, i32> {
         let c_path = CString::new(path).expect("CString::new failed");
         unsafe {
             let mut file = MaybeUninit::uninit();
@@ -32,6 +33,31 @@ impl Ext4File {
                 }
             }
         }
+    }
+
+    pub fn open_dir(path: &str, create: bool) -> Result<Self, i32> {
+        let c_path = CString::new(path).unwrap();
+        unsafe {
+            if create {
+                let e = ext4_dir_mk(c_path.as_ptr());
+                if e != 0 {
+                    error!("ext4_dir_mk {} failed", path);
+                    return Err(e);
+                }
+            }
+            let mut dir = MaybeUninit::uninit();
+            match ext4_dir_open(dir.as_mut_ptr(), c_path.as_ptr()) {
+                0 => Ok(Self(dir.assume_init().f)),
+                e => {
+                    error!("ext4_dir_open {} failed: {}", path, e);
+                    Err(e)
+                }
+            }
+        }
+    }
+
+    pub fn iter_dir(&self) -> Ext4DirIter {
+        Ext4DirIter::new(self.0)
     }
 
     pub fn inode(&self) -> u32 {
